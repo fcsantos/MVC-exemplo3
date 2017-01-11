@@ -1,0 +1,94 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Conversacao</title>
+    <!-- Folhas de estilo -->
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Content/bootstrap-theme.css" rel="stylesheet" />
+    <!-- Javascript -->
+    <script src="~/Scripts/jquery-1.9.1.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <!-- virtual para acessar os Hubs -->
+    <script src="/signalr/hubs"></script>
+    <!-- Bloco javascript -->
+    <script type="text/javascript">
+        $(document).ready(
+            function () {
+
+                //capturando o nome do usuario...
+                var usuario = prompt("Informe seu Nome:");
+
+                //mostar o nome do usuario na página..
+                $("#usuario").html(usuario);
+
+                //conectar ao hub (primeira letra do nome da classe em minusculo)
+                var chat = $.connection.chatHub; //nome da classe
+
+                //escutar as mensagens do hub..
+                chat.client.broadcastMessage = function (nome, mensagem) {
+
+                    var msg = "";
+
+                    msg += "<li>";
+                    msg += "(" + nome + ") ";
+                    msg += "<strong>" + mensagem + "</strong>";
+                    msg += "</li>";
+
+                    //imprimir a conversa..
+                    $("#mensagens").append(msg);
+                };
+
+
+                //ativar o envio de mensagens para o Hub..
+                $.connection.hub.start().done( //se o hub estiver conectado..
+                    function () { //faça..
+                        //quando o botão for clicado...
+                        $("#btnenvio").click(
+                            function () {
+                                //send -> nome do método na classe ChatHub
+                                //server -> obrigatorio para executarmos o send
+                                chat.server.send(usuario, $("#mensagem").val());
+                                $("#mensagem").val("").focus();
+                                //limpar o campo..
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    </script>
+</head>
+<body class="container">
+    <h3>Sala de Conversação</h3>
+    <hr />
+
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <label>Usuario:</label>
+            <span id="usuario"></span>
+            <br /><br />
+
+            <label>Digite a mensagem:</label>
+            <textarea id="mensagem" class="form-control"></textarea>
+            <br />
+
+            <button id="btnenvio" class="btn btn-primary btn-block">
+                Enviar Mensagem
+            </button>
+
+        </div>
+
+        <div class="col-md-8">
+            <ul id="mensagens"></ul>
+        </div>
+    </div>
+</body>
+</html>
